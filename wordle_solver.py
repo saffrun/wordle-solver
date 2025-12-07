@@ -143,8 +143,7 @@ def main():
 
         if len(answers) > 1:
             best_guess, best_ent = best_weighted_guess(answers, probs)
-            print(f"Suggested next guess (max weighted entropy): "
-                  f"{best_guess.upper()}  (H = {best_ent:.3f} bits)")
+            print(f"Suggested next guess (max weighted entropy): " f"{best_guess.upper()}  (H = {best_ent:.3f} bits)")
 
 
 if __name__ == "__main__":
