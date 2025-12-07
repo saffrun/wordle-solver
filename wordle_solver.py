@@ -110,7 +110,7 @@ def main():
             print("Pattern must be 5 characters of g/y/w (e.g., gywwy).")
             continue
 
-        # 🔹 This is the key line for this part:
+
         answers, probs = filter_candidates(answers, probs, guess, pattern)
 
         print(f"\nAfter applying filter_candidates with guess {guess.upper()} and pattern {pattern}:")
