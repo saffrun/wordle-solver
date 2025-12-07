@@ -98,7 +98,7 @@ def best_weighted_guess(answers, probs, remaining=None):
         e = weighted_guess_entropy(r,answers,probs)
         if e > best_ent:
             best_ent = e
-            best_word = g
+            best_word = r
     return best_word, best_ent
     
 def main():
@@ -141,13 +141,10 @@ def main():
 
         answers, probs = filter_candidates(answers, probs, guess, pattern)
 
-        print(f"\nAfter applying filter_candidates with guess {guess.upper()} and pattern {pattern}:")
-        print(f"  Remaining candidates: {len(answers)}")
-
-        # Show a small preview of remaining words
-        print("  First up to 10 candidates (word, prob):")
-        for w, p in zip(answers[:10], probs[:10]):
-            print(f"    {w:>10}  {p:.6f}")
+        if len(answers) > 1:
+            best_guess, best_ent = best_weighted_guess(answers, probs)
+            print(f"Suggested next guess (max weighted entropy): "
+                  f"{best_guess.upper()}  (H = {best_ent:.3f} bits)")
 
 
 if __name__ == "__main__":
