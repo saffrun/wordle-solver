@@ -71,8 +71,36 @@ def filter_candidates(answers, probs, guess: str, pattern: str):
         new_probs = [p / total for p in new_probs]
 
     return new_answers, new_probs
+def weighted_guess_entropy(guess: str, answers, probs)-> float:
+    pattern_prob = {} 
+    #key->pattern, value-> probability mass 
+    #probability of each pattern occuring given the guess0
+    for word, p in zip(answers, probs):
+        pattern = get_feedback(guess,word)
+        #add prob to that pattern bucket
+        pattern_prob[pattern] = pattern_prob.get(pattern,0.0)+p
 
+    H = 0.0
+    #calculate entropy
+    for p in pattern_prob.values():
+        if p > 0:
+            H-= p * math.log2(p)
+    return H 
+    #return expected infomation gain(bits)
 
+def best_weighted_guess(answers, probs, remaining=None):
+    if remaining is None:
+        remaining = answers
+    best_word = None
+    best_ent = -1.0
+    #tries every remaining guess candidate and computes its entropy with the current answers and prob
+    for r in remaining:
+        e = weighted_guess_entropy(r,answers,probs)
+        if e > best_ent:
+            best_ent = e
+            best_word = g
+    return best_word, best_ent
+    
 def main():
     answers, probs = weighted_answers(CSV)
 
