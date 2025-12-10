@@ -5,7 +5,7 @@ import pandas as pd
 CSV = 'wordle.csv'
 starter_words = ["slate", "crane", "adieu", "roate", "soare"]
 
-
+# this function the instilizes answer space and normalized probabilities
 def weighted_answers(CSV: str):
     df = pd.read_csv(CSV, header=0, usecols=[0, 1], names=["word", "occurrence"])
 
@@ -15,7 +15,7 @@ def weighted_answers(CSV: str):
     # change occurrence to numeric
     df["occurrence"] = pd.to_numeric(df["occurrence"])
 
-    # Remove NaNs and non-positive probabilities
+    # Remove missing values and non-positive probabilities
     df = df.dropna(subset=["occurrence"])
     df = df[df["occurrence"] > 0]
 
@@ -29,7 +29,7 @@ def weighted_answers(CSV: str):
 
     return word_list, prob_list
 
-
+#this function stimulates the core of wordle feedback system 
 def get_feedback(guess: str, answer: str):
     # get everything to lower case 
     guess = guess.lower()
@@ -43,6 +43,7 @@ def get_feedback(guess: str, answer: str):
     for i in range(5):
         if guess[i] == answer[i]:
             pattern[i] = "g"
+            #so the letter isnt reused as a yellow
             answer_chars[i] = None
 
     # check for yellow 
@@ -55,31 +56,44 @@ def get_feedback(guess: str, answer: str):
     # join the list to string and return it
     return "".join(pattern)
 
-
+#answers -> currrent possible answer list
+#probs->curr prob for all those answers
+#guess -> the word you just played 
+#pattern-> the feedback you got from the real game like("ggywy")
 def filter_candidates(answers, probs, guess: str, pattern: str):
     new_answers = []
     new_probs = []
 
     # combine lists to make easier to parse
+    #for each candidate(word) it uses the get_feeback, if the stimulated patter is the same as the guess then keep it
     for word, p in zip(answers, probs):
         if get_feedback(guess, word) == pattern:
             new_answers.append(word)
             new_probs.append(p)
-
+    #normalize the new probabilites so they still sum to 1 over the new set
     total = sum(new_probs)
     if total > 0:
         new_probs = [p / total for p in new_probs]
-
+    #return the new answer space and matching propbabilities 
     return new_answers, new_probs
+
+#this function computes the expected information gain(guess) of playing a given guess
+
 def weighted_guess_entropy(guess: str, answers, probs)-> float:
     pattern_prob = {} 
     #key->pattern, value-> probability mass 
-    #probability of each pattern occuring given the guess0
+    #probability of each pattern occuring given the guess
+
+
+    #for each (word,p) it pretend the word is the "answer"
     for word, p in zip(answers, probs):
+        #computes the pattern 
         pattern = get_feedback(guess,word)
-        #add prob to that pattern bucket
+        #add prob(p) to that pattern bucket
         pattern_prob[pattern] = pattern_prob.get(pattern,0.0)+p
 
+    #a higher H means the guess splits the probability mass into many patterns more evenly -> which equates to more information.
+    # we basically want to learn that if i play this guess how much will i learn on average 
     H = 0.0
     #calculate entropy
     for p in pattern_prob.values():
@@ -93,7 +107,7 @@ def best_weighted_guess(answers, probs, remaining=None):
         remaining = answers
     best_word = None
     best_ent = -1.0
-    #tries every remaining guess candidate and computes its entropy with the current answers and prob
+    #tries every remaining guess candidate and computes its entropy with the current answers and prob and keep track of the e which is the best entropy so far
     for r in remaining:
         e = weighted_guess_entropy(r,answers,probs)
         if e > best_ent:
